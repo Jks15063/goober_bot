@@ -24,7 +24,7 @@ defmodule GooberBot.TestBot do
         Process.sleep(3000)
 
       "!ping" ->
-        Api.create_message(msg.channel_id, "pyongyang!")
+        Api.create_message(msg.channel_id, "pong!")
 
       "!raise" ->
         # This won't crash the entire Consumer.
