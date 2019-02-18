@@ -16,7 +16,7 @@ defmodule GooberBot.EscrowBot do
     {:ok, :nostate}
   end
 
-  def handle_event({:MESSAGE_CREATE, {%{author: %{username: username}} = msg}, _ws_state}) do
+  def handle_event({:MESSAGE_CREATE, {%{author: %{id: id}} = msg}, _ws_state}) do
     case msg.content do
       "$challenge" <> _ = challenge_txt ->
         ["$challenge", challenged_user, amount_str] = String.split(challenge_txt)
@@ -24,7 +24,18 @@ defmodule GooberBot.EscrowBot do
 
         Api.create_message(
           msg.channel_id,
-          "User #{challenged_user} has been challenged by #{username} for $#{amount}."
+          "User #{challenged_user} has been challenged by <@#{id}> for $#{amount}."
+        )
+
+      "$help" ->
+        Api.create_message(
+          msg.channel_id,
+          """
+          Challenge format: `$challenge @<username> $<amount>`.
+          Example: `$challenge @torkable $10.00`
+
+          Accept challenge: `$accept challenge`
+          """
         )
 
       _ ->
