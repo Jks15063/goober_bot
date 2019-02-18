@@ -25,6 +25,11 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :nostrum,
+  # TODO: seems unsafe
+  token: "NTQ1NTM1NzcyMjc1NjM4Mjcz.D0dE9g.4QrAANZonbyRjqhUOY8UZUcEEFE",
+  num_shards: :auto
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

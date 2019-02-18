@@ -8,10 +8,9 @@ defmodule GooberBot.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Start the Ecto repository
       GooberBot.Repo,
-      # Start the endpoint when the application starts
-      GooberBotWeb.Endpoint
+      GooberBotWeb.Endpoint,
+      GooberBot.TestBot
       # Starts a worker by calling: GooberBot.Worker.start_link(arg)
       # {GooberBot.Worker, arg},
     ]
