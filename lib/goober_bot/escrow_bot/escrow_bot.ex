@@ -9,16 +9,14 @@ defmodule GooberBot.EscrowBot do
   alias Nostrum.Api
 
   def start_link do
-    IO.inspect("HI")
+    @challenge_table :ets.new(:challenge_table, [:named_table, :private])
+    # :ets.insert(:challenge_table, {:foo, true})
+    # :ets.lookup(:challenge_table, :foo) |> IO.inspect()
     Consumer.start_link(__MODULE__)
   end
 
   # is this ever run???
   def init(_initial_state) do
-    IO.inspect("HELLO")
-    :ets.new(:challenge_table, [:named_table, :private])
-    :ets.insert(:challenge_table, {:foo, true})
-    :ets.last(:challenge_table) |> IO.inspect()
     {:ok, :nostate}
   end
 
@@ -36,25 +34,16 @@ defmodule GooberBot.EscrowBot do
         )
 
       "$eb accept" ->
-        :ets.insert(:challenge_table, {:foo, true})
+        # :ets.new(:challenge_table, [:named_table, :private])
+        :ets.insert(@challenge_table, {:foo, true})
 
-        :ets.last(:challenge_table) |> IO.inspect()
-        # :ets.first(:challenge_table) |> IO.inspect()
-
-        # IO.inspect(:ets.lookup(challenge_table, :number))
-        # IO.inspect(:ets.lookup_element(challenge_table, :number, 2))
-
+        # :ets.last(:challenge_table) |> IO.inspect()
         Api.create_message(
           msg.channel_id,
           "User <@#{msg.author.id}> has accepted a challenge from TODO"
         )
 
       "$eb decline" ->
-        # :ets.insert(challenge_table, {:bar, true})
-
-        # :ets.last(challenge_table) |> IO.inspect()
-        # :ets.first(challenge_table) |> IO.inspect()
-
         Api.create_message(
           msg.channel_id,
           "<@#{msg.author.id}> has declined a challenge from TODO"
