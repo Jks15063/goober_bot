@@ -4,6 +4,7 @@ defmodule GooberBot.Match do
   """
 
   use Ecto.Schema
+  import Ecto.Changeset
 
   alias GooberBot.{Set, User}
 
@@ -18,7 +19,7 @@ defmodule GooberBot.Match do
     timestamps(type: :utc_datetime_usec)
   end
 
-  def changeset(match, params) do
+  def changeset(match, _params) do
     match
     |> cast_assoc(:set)
     |> cast_assoc(:player1)
