@@ -11,6 +11,7 @@ defmodule GooberBot.Match do
   @primary_key {:id, :binary_id, autogenerate: true}
 
   schema "matches" do
+    # TODO: maybe embedded_schema for rounds
     belongs_to(:set, Set)
     belongs_to(:player1, User, foreign_key: :player1_id)
     belongs_to(:player2, User, foreign_key: :player2_id)
