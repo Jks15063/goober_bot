@@ -1,17 +1,14 @@
 defmodule GooberBot.User do
   @moduledoc """
-  User module and logic
+  User schema and changeset
   """
 
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias __MODULE__
+  alias GooberBot.Match
 
-  @type t :: %User{
-          username: String.t(),
-          user_id: String.t()
-        }
+  @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
     user_id
@@ -37,10 +34,11 @@ defmodule GooberBot.User do
     field(:username, :string)
     field(:verified, :boolean, default: false)
 
+    has_many(:matches, Match)
+
     timestamps(type: :utc_datetime_usec)
   end
 
-  @spec changeset(User.t(), map()) :: Ecto.Changeset.t()
   def changeset(user, params) do
     user
     |> cast(params, @optional_fields ++ @required_fields)
