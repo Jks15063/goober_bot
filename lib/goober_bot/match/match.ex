@@ -10,6 +10,17 @@ defmodule GooberBot.Match do
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
+  @required_fields ~w(
+    set
+    player1_id
+    player2_id
+    winner_id
+  )a
+
+  @optional_fields ~w()a
+
+  @allowed_fields @required_fields ++ @optional_fields
+
   schema "matches" do
     # TODO: maybe embedded_schema for rounds
     belongs_to(:set, Set)
@@ -20,8 +31,10 @@ defmodule GooberBot.Match do
     timestamps(type: :utc_datetime_usec)
   end
 
-  def changeset(match, _params) do
+  def changeset(match, params) do
     match
+    |> cast(params, @allowed_fields)
+    |> validate_required(@required_fields)
     |> cast_assoc(:set)
     |> cast_assoc(:player1)
     |> cast_assoc(:player2)

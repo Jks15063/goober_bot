@@ -17,10 +17,10 @@ defmodule GooberBot.Set.SetQuery do
     Enum.reduce(criteria, query, &compose_query/2)
   end
 
-  defp compose_query({:owner_id, owner_id}, query) do
+  defp compose_query({:id, id}, query) do
     from(
       set in query,
-      where: set.owner_id == ^owner_id
+      where: set.id == ^id
     )
   end
 end

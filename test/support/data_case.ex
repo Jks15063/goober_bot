@@ -22,6 +22,7 @@ defmodule GooberBot.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import GooberBot.DataCase
+      import GooberBot.Factory
     end
   end
 

@@ -17,10 +17,10 @@ defmodule GooberBot.User.UserQuery do
     Enum.reduce(criteria, query, &compose_query/2)
   end
 
-  defp compose_query({:discord_id, discord_id}, query) do
+  defp compose_query({:user_id, user_id}, query) do
     from(
       user in query,
-      where: user.discord_id == ^discord_id
+      where: user.user_id == ^user_id
     )
   end
 end

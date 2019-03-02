@@ -11,7 +11,7 @@ defmodule GooberBot.Repo.Migrations.CreateSetTable do
       add :matches_to_win, :integer
       add :player1_id, references(:users, type: :uuid), null: false
       add :player2_id, references(:users, type: :uuid), null: false
-      add :winner_id, references(:users, type: :uuid), null: false
+      add :winner_id, references(:users, type: :uuid), null: true
       timestamps(type: :timestamptz)
     end
   end

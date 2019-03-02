@@ -9,7 +9,7 @@ defmodule GooberBot.Repo.Migrations.CreateUserTable do
       add :discriminator, :string
       add :email, :string
       add :mfa_enabled, :boolean, default: false
-      add :user_id, :numeric
+      add :user_id, :bigint
       add :username, :string
       add :verified, :boolean, default: false
       timestamps(type: :timestamptz)
