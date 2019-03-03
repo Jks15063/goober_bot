@@ -7,11 +7,8 @@ defmodule GooberBot.Repo.Migrations.CreateSetTable do
     SetStatus.create_type()
     create table(:sets, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :score_to_win, :bigint
       add :status, SetStatus.type()
-      add :matches_to_win, :integer
-      add :player1_id, references(:users, type: :uuid), null: false
-      add :player2_id, references(:users, type: :uuid), null: false
-      add :winner_id, references(:users, type: :uuid), null: true
       timestamps(type: :timestamptz)
     end
   end

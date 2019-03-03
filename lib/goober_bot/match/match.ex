@@ -6,15 +6,13 @@ defmodule GooberBot.Match do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.{Set, User}
+  alias GooberBot.{Set, Participant}
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
-    set
-    player1_id
-    player2_id
-    winner_id
+    set_id
+    participant_id
   )a
 
   @optional_fields ~w()a
@@ -22,11 +20,8 @@ defmodule GooberBot.Match do
   @allowed_fields @required_fields ++ @optional_fields
 
   schema "matches" do
-    # TODO: maybe embedded_schema for rounds
-    belongs_to(:set, Set)
-    belongs_to(:player1, User, foreign_key: :player1_id)
-    belongs_to(:player2, User, foreign_key: :player2_id)
-    belongs_to(:winner, User, foreign_key: :winner_id)
+    belongs_to(:set, Set, type: :binary_id)
+    belongs_to(:participant, Participant, type: :binary_id)
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -35,9 +30,7 @@ defmodule GooberBot.Match do
     match
     |> cast(params, @allowed_fields)
     |> validate_required(@required_fields)
-    |> cast_assoc(:set)
-    |> cast_assoc(:player1)
-    |> cast_assoc(:player2)
-    |> cast_assoc(:winner)
+    |> foreign_key_constraint(:participant)
+    |> foreign_key_constraint(:set)
   end
 end

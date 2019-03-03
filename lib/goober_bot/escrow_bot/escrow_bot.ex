@@ -24,15 +24,13 @@ defmodule GooberBot.EscrowBot do
   defp handle_cmd(%{content: "$eb challenge" <> challenge_txt} = msg) do
     author = msg.author
     challenged_user = hd(msg.mentions)
-    [_full_match, matches_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
+    [_full_match, score_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
 
     with {:player1, player1} <- {:player1, UserInterface.get([{:user_id, author.id}])},
          {:player2, player2} <- {:player2, UserInterface.get([{:user_id, challenged_user.id}])} do
       new_set = %{
         status: :open,
-        matches_to_win: matches_to_win,
-        player1_id: player1.id,
-        player2_id: player2.id
+        score_to_win: score_to_win
       }
 
       {:ok, _set} = SetInterface.create(new_set)
@@ -40,7 +38,7 @@ defmodule GooberBot.EscrowBot do
       Api.create_message(
         msg.channel_id,
         "<@#{player2.user_id}> has been challenged by <@#{player1.user_id}> to a first to  $#{
-          matches_to_win
+          score_to_win
         }."
       )
     else
@@ -62,11 +60,11 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb ping"} = msg) do
-    player1 = UserInterface.get([{:user_id, msg.author.id}])
+    user = UserInterface.get([{:user_id, msg.author.id}])
 
     Api.create_message(
       msg.channel_id,
-      "<@#{player1.user_id}> pong "
+      "<@#{user.user_id}> pong "
     )
   end
 

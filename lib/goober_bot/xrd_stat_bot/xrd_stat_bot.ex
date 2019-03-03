@@ -6,7 +6,7 @@ defmodule GooberBot.XrdStatBot do
   use GenServer
   use Nostrum.Consumer
 
-  alias Nostrum.Api
+  # alias Nostrum.Api
 
   def start_link do
     Consumer.start_link(__MODULE__)
