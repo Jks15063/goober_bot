@@ -6,6 +6,7 @@ defmodule GooberBot.EscrowBot do
   use Nostrum.Consumer
 
   alias Nostrum.Api
+  alias GooberBot.{Set, User}
   alias GooberBot.User.UserInterface
   alias GooberBot.Set.SetInterface
 
@@ -26,9 +27,15 @@ defmodule GooberBot.EscrowBot do
     challenged_user = hd(msg.mentions)
     [_full_match, score_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
 
-    with {:player1, player1} <- {:player1, UserInterface.get([{:user_id, author.id}])},
-         {:player2, player2} <- {:player2, UserInterface.get([{:user_id, challenged_user.id}])} do
+    with {:p1, player1} <- {:p1, UserInterface.get([{:user_id, author.id}])},
+         {:p2, player2} <- {:p2, UserInterface.get([{:user_id, challenged_user.id}])},
+         {:p1_set, nil} <-
+           {:p1_set, SetInterface.get([{:player_id, player1.id}, {:status, :active}])},
+         {:p2_set, nil} <-
+           {:p2_set, SetInterface.get([{:player_id, player2.id}, {:status, :active}])} do
       new_set = %{
+        player1_id: player1.id,
+        player2_id: player2.id,
         status: :open,
         score_to_win: score_to_win
       }
@@ -37,21 +44,33 @@ defmodule GooberBot.EscrowBot do
 
       Api.create_message(
         msg.channel_id,
-        "<@#{player2.user_id}> has been challenged by <@#{player1.user_id}> to a first to  $#{
+        "<@#{player2.user_id}> has been challenged by <@#{player1.user_id}> to a first to #{
           score_to_win
         }."
       )
     else
-      {:player1, _error} ->
+      {:p1, _error} ->
         Api.create_message(
           msg.channel_id,
           "<@#{author.id}> please register: `$eb register`"
         )
 
-      {:player2, _error} ->
+      {:p2, _error} ->
         Api.create_message(
           msg.channel_id,
           "<@#{challenged_user.username}> is not registered."
+        )
+
+      {:p1_set, %Set{}} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{author.id}> you can only issue one challenge at a time."
+        )
+
+      {:p2_set, %Set{}} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{challenged_user.username}> can only be part of one challenge at a time."
         )
 
       {:error, changeset} ->
@@ -61,6 +80,9 @@ defmodule GooberBot.EscrowBot do
 
   defp handle_cmd(%{content: "$eb ping"} = msg) do
     user = UserInterface.get([{:user_id, msg.author.id}])
+    set = SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
+
+    IO.inspect(set)
 
     Api.create_message(
       msg.channel_id,
@@ -69,36 +91,90 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb accept"} = msg) do
-    Api.create_message(
-      msg.channel_id,
-      "User <@#{msg.author.id}> has accepted a challenge from TODO"
-    )
+    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
+         %Set{} = set <-
+           SetInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
+      {:ok, _set} = SetInterface.update(set, %{status: :accepted})
+
+      Api.create_message(
+        msg.channel_id,
+        "User <@#{msg.author.id}> has accepted a challenge from <@#{set.player1.user_id}>"
+      )
+    else
+      nil ->
+        Api.create_message(
+          msg.channel_id,
+          "No open challenges."
+        )
+    end
   end
 
   defp handle_cmd(%{content: "$eb decline"} = msg) do
-    Api.create_message(
-      msg.channel_id,
-      "<@#{msg.author.id}> has declined a challenge from TODO"
-    )
+    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
+         %Set{} = set <-
+           SetInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
+      {:ok, _set} = SetInterface.update(set, %{status: :accepted})
+
+      Api.create_message(
+        msg.channel_id,
+        "User <@#{msg.author.id}> has declined the challenge from <@#{set.player1.user_id}>"
+      )
+    else
+      nil ->
+        Api.create_message(
+          msg.channel_id,
+          "No open challenges."
+        )
+    end
   end
 
   defp handle_cmd(%{content: "$eb cancel"} = msg) do
-    Api.create_message(
-      msg.channel_id,
-      "<@#{msg.author.id}> has canceled their challenge to TODO"
-    )
+    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
+         %Set{} = set <-
+           SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}]) do
+      {:ok, _set} = SetInterface.update(set, %{status: :canceled})
+
+      Api.create_message(
+        msg.channel_id,
+        "User <@#{msg.author.id}> has canceled their challenge to <@#{set.player2.user_id}>"
+      )
+    else
+      nil ->
+        Api.create_message(
+          msg.channel_id,
+          "No open challenges."
+        )
+    end
   end
 
-  defp handle_cmd(%{content: "$eb report winner" <> winner} = msg) do
-    Api.create_message(
-      msg.channel_id,
-      "#{winner} has defeated TODO and won $TODO"
-    )
+  defp handle_cmd(%{content: "$eb report" <> score_txt} = msg) do
+    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
+         # TODO: change :accepted to :started once that logic is in place
+         %Set{} = set <-
+           SetInterface.get([{:player_id, user.id}, {:status, :accepted}, {:preload, :default}]),
+         [_full_match, player1_score, player2_score] <-
+           Regex.run(~r/([0-9]+)-([0-9]+)/, score_txt) do
+      {:ok, _set} =
+        SetInterface.update(set, %{
+          player1_score: player1_score,
+          player2_score: player2_score,
+          status: :completed
+        })
+
+      Api.create_message(
+        msg.channel_id,
+        "<@#{set.player1.user_id}>: #{player1_score}, <@#{set.player2.user_id}>: #{player2_score}"
+      )
+    else
+      nil ->
+        Api.create_message(
+          msg.channel_id,
+          "Oops."
+        )
+    end
   end
 
   defp handle_cmd(%{content: "$eb register"} = msg) do
-    # IO.inspect(Map.from_struct(msg.author))
-
     author =
       msg.author
       |> Map.put(:user_id, msg.author.id)

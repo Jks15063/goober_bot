@@ -8,6 +8,6 @@ defmodule GooberBot.Set.SetInterface do
   defdelegate get(criteria), to: SetQuery
 
   defdelegate create(params), to: SetMutation
-  # defdelegate update(set, params), to: SetMutation
+  defdelegate update(set, params), to: SetMutation
   # defdelegate delete(set, params), to: SetMutation
 end

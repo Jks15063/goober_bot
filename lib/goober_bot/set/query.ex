@@ -23,4 +23,46 @@ defmodule GooberBot.Set.SetQuery do
       where: set.id == ^id
     )
   end
+
+  defp compose_query({:preload, :default}, query) do
+    from(
+      set in query,
+      preload: [:player1, :player2]
+    )
+  end
+
+  defp compose_query({:player1_id, player_id}, query) do
+    from(
+      set in query,
+      where: set.player1_id == ^player_id
+    )
+  end
+
+  defp compose_query({:player2_id, player_id}, query) do
+    from(
+      set in query,
+      where: set.player2_id == ^player_id
+    )
+  end
+
+  defp compose_query({:player_id, player_id}, query) do
+    from(
+      set in query,
+      where: set.player1_id == ^player_id or set.player2_id == ^player_id
+    )
+  end
+
+  defp compose_query({:status, :active}, query) do
+    from(
+      set in query,
+      where: set.status == "open" or set.status == "accepted" or set.status == "started"
+    )
+  end
+
+  defp compose_query({:status, status}, query) do
+    from(
+      set in query,
+      where: set.status == ^status
+    )
+  end
 end

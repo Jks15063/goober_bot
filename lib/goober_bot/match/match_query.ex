@@ -17,17 +17,17 @@ defmodule GooberBot.Match.MatchQuery do
     Enum.reduce(criteria, query, &compose_query/2)
   end
 
+  defp compose_query({:player_id, player_id}, query) do
+    from(
+      match in query,
+      where: match.player1_id == ^player_id or match.player2_id == ^player_id
+    )
+  end
+
   defp compose_query({:set_id, set_id}, query) do
     from(
       match in query,
       where: match.set_id == ^set_id
     )
   end
-
-  # defp compose_query({:participant_id, participant_id}, query) do
-  #   from(
-  #     match in query,
-  #     where: match.participant_id == ^participant_id
-  #   )
-  # end
 end

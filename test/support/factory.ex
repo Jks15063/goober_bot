@@ -5,12 +5,20 @@ defmodule GooberBot.Factory do
 
   def match_factory do
     %Match{
+      player1: build(:user),
+      player2: build(:user),
+      player1_score: 0,
+      player2_score: 0,
       set: build(:set)
     }
   end
 
   def set_factory do
     %Set{
+      player1: build(:user),
+      player2: build(:user),
+      player1_score: 0,
+      player2_score: 0,
       score_to_win: 10,
       status: :open
     }

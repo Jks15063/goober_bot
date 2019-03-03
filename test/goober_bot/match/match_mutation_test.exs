@@ -6,13 +6,15 @@ defmodule GooberBot.Match.MatchMutationTest do
 
   describe "create/1" do
     test "can create a match" do
+      player1 = insert(:user)
+      player2 = insert(:user)
       set = insert(:set)
 
-      match_params =
-        build(:match, set_id: set.id)
+      params =
+        build(:match, player1_id: player1.id, player2_id: player2.id, set_id: set.id)
         |> Map.from_struct()
 
-      {:ok, match} = MatchMutation.create(match_params)
+      {:ok, match} = MatchMutation.create(params)
 
       assert %Match{} = match
     end

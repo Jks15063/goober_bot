@@ -5,10 +5,12 @@ defmodule GooberBot.SetTest do
 
   describe "validations" do
     test "validates a set" do
-      params = %{
-        score_to_win: 10,
-        status: :open
-      }
+      player1 = insert(:user)
+      player2 = insert(:user)
+
+      params =
+        build(:set, player1_id: player1.id, player2_id: player2.id)
+        |> Map.from_struct()
 
       changeset = Set.changeset(%Set{}, params)
       assert changeset.errors == []

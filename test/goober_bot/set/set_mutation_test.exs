@@ -6,11 +6,14 @@ defmodule GooberBot.Set.SetMutationTest do
 
   describe "create/1" do
     test "can create a set" do
-      set_params =
-        build(:set)
+      player1 = insert(:user)
+      player2 = insert(:user)
+
+      params =
+        build(:set, player1_id: player1.id, player2_id: player2.id)
         |> Map.from_struct()
 
-      {:ok, set} = SetMutation.create(set_params)
+      {:ok, set} = SetMutation.create(params)
 
       assert %Set{} = set
     end
