@@ -6,8 +6,6 @@ defmodule GooberBot.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.Participant
-
   @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
@@ -33,8 +31,6 @@ defmodule GooberBot.User do
     field(:user_id, :integer)
     field(:username, :string)
     field(:verified, :boolean, default: false)
-
-    has_many(:participants, Participant)
 
     timestamps(type: :utc_datetime_usec)
   end

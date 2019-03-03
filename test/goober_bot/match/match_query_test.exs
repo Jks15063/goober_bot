@@ -5,9 +5,8 @@ defmodule GooberBot.Match.MatchQueryTest do
 
   describe "get/1" do
     setup do
-      participant = insert(:participant)
       set = insert(:set)
-      match = insert(:match, set: set, participant: participant)
+      match = insert(:match, set: set)
 
       %{match: match, set: set}
     end

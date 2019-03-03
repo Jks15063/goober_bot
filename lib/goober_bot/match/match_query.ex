@@ -24,10 +24,10 @@ defmodule GooberBot.Match.MatchQuery do
     )
   end
 
-  defp compose_query({:participant_id, participant_id}, query) do
-    from(
-      match in query,
-      where: match.participant_id == ^participant_id
-    )
-  end
+  # defp compose_query({:participant_id, participant_id}, query) do
+  #   from(
+  #     match in query,
+  #     where: match.participant_id == ^participant_id
+  #   )
+  # end
 end

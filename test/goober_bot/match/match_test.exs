@@ -5,12 +5,10 @@ defmodule GooberBot.MatchTest do
 
   describe "validations" do
     test "validates a match" do
-      participant = insert(:participant)
       set = insert(:set)
 
       params = %{
-        set_id: set.id,
-        participant_id: participant.id
+        set_id: set.id
       }
 
       changeset = Match.changeset(%Match{}, params)

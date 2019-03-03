@@ -6,7 +6,7 @@ defmodule GooberBot.Set do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.{Match, Participant}
+  alias GooberBot.{Match}
   alias GooberBot.Enum.SetStatus
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -26,7 +26,6 @@ defmodule GooberBot.Set do
     field(:status, SetStatus)
 
     has_many(:matches, Match)
-    has_many(:participants, Participant)
 
     timestamps(type: :utc_datetime_usec)
   end

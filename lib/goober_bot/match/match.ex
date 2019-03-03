@@ -6,13 +6,12 @@ defmodule GooberBot.Match do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.{Set, Participant}
+  alias GooberBot.Set
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
     set_id
-    participant_id
   )a
 
   @optional_fields ~w()a
@@ -21,7 +20,6 @@ defmodule GooberBot.Match do
 
   schema "matches" do
     belongs_to(:set, Set, type: :binary_id)
-    belongs_to(:participant, Participant, type: :binary_id)
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -30,7 +28,6 @@ defmodule GooberBot.Match do
     match
     |> cast(params, @allowed_fields)
     |> validate_required(@required_fields)
-    |> foreign_key_constraint(:participant)
     |> foreign_key_constraint(:set)
   end
 end

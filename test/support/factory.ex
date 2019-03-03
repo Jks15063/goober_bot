@@ -1,21 +1,11 @@
 defmodule GooberBot.Factory do
   use ExMachina.Ecto, repo: GooberBot.Repo
 
-  alias GooberBot.{Match, Participant, Set, User}
+  alias GooberBot.{Match, Set, User}
 
   def match_factory do
     %Match{
-      set: build(:set),
-      participant: build(:participant)
-    }
-  end
-
-  def participant_factory do
-    %Participant{
-      score: 10,
-      status: "ready",
-      set: build(:set),
-      user: build(:user)
+      set: build(:set)
     }
   end
 

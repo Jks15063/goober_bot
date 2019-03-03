@@ -7,10 +7,9 @@ defmodule GooberBot.Match.MatchMutationTest do
   describe "create/1" do
     test "can create a match" do
       set = insert(:set)
-      participant = insert(:participant)
 
       match_params =
-        build(:match, set_id: set.id, participant_id: participant.id)
+        build(:match, set_id: set.id)
         |> Map.from_struct()
 
       {:ok, match} = MatchMutation.create(match_params)
