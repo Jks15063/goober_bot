@@ -6,7 +6,7 @@ defmodule GooberBot.EscrowBot do
   use Nostrum.Consumer
 
   alias Nostrum.Api
-  alias GooberBot.{Set, User}
+  alias GooberBot.{PlayerQueueServer, Set, User}
   alias GooberBot.User.UserInterface
   alias GooberBot.Set.SetInterface
 
@@ -20,6 +20,18 @@ defmodule GooberBot.EscrowBot do
 
   def handle_event(_event) do
     :noop
+  end
+
+  defp handle_cmd(%{content: "!add me"} = msg) do
+    PlayerQueueServer.add_player(msg.author.id)
+
+    Api.create_message(msg.channel_id, "Added")
+  end
+
+  defp handle_cmd(%{content: "!view q"} = msg) do
+    IO.inspect(PlayerQueueServer.get_queue())
+
+    Api.create_message(msg.channel_id, "show q: todo")
   end
 
   defp handle_cmd(%{content: "$eb challenge" <> challenge_txt} = msg) do
@@ -80,9 +92,9 @@ defmodule GooberBot.EscrowBot do
 
   defp handle_cmd(%{content: "$eb ping"} = msg) do
     user = UserInterface.get([{:user_id, msg.author.id}])
-    set = SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
+    # set = SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
 
-    IO.inspect(set)
+    IO.inspect(msg)
 
     Api.create_message(
       msg.channel_id,
