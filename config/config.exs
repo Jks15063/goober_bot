@@ -26,8 +26,7 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :nostrum,
-  # TODO: seems unsafe
-  token: "NTQ1NTM1NzcyMjc1NjM4Mjcz.D0dE9g.4QrAANZonbyRjqhUOY8UZUcEEFE",
+  token: System.get_env("DISCORD_BOT_TOKEN"),
   num_shards: :auto
 
 # Import environment specific config. This must remain at the bottom
