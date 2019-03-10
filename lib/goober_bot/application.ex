@@ -10,8 +10,8 @@ defmodule GooberBot.Application do
     children = [
       GooberBot.Repo,
       GooberBotWeb.Endpoint,
-      GooberBot.Bot.BotSupervisor,
-      GooberBot.Queue.QueueSupervisor
+      GooberBot.Supervisor.AgentSupervisor,
+      GooberBot.Supervisor.BotSupervisor
       # Starts a worker by calling: GooberBot.Worker.start_link(arg)
       # {GooberBot.Worker, arg},
     ]

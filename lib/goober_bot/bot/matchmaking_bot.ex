@@ -9,7 +9,7 @@ defmodule GooberBot.Bot.MatchmakingBot do
   alias GooberBot.{Event, User}
   alias GooberBot.User.UserInterface
   alias GooberBot.Event.EventInterface
-  alias GooberBot.Queue.PlayerQueueServer
+  alias GooberBot.Agent.{LobbyListAgent, PlayerQueueAgent}
 
   def start_link do
     Consumer.start_link(__MODULE__)
@@ -23,14 +23,20 @@ defmodule GooberBot.Bot.MatchmakingBot do
     :noop
   end
 
+  defp handle_cmd(%{content: "!add lobby"} = msg) do
+    LobbyListAgent.add_lobby(msg.author.id)
+
+    Api.create_message(msg.channel_id, "Lobby added")
+  end
+
   defp handle_cmd(%{content: "!add me"} = msg) do
-    PlayerQueueServer.add_player(msg.author.id)
+    PlayerQueueAgent.add_player(msg.author.id)
 
     Api.create_message(msg.channel_id, "Added")
   end
 
   defp handle_cmd(%{content: "!view q"} = msg) do
-    IO.inspect(PlayerQueueServer.get_queue())
+    IO.inspect(PlayerQueueAgent.get_queue())
 
     Api.create_message(msg.channel_id, "show q: todo")
   end

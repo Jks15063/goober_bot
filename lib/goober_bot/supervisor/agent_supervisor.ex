@@ -1,7 +1,7 @@
-defmodule GooberBot.Queue.QueueSupervisor do
+defmodule GooberBot.Supervisor.AgentSupervisor do
   use Supervisor
 
-  alias GooberBot.Queue.{LobbyQueueServer, PlayerQueueServer}
+  alias GooberBot.Agent.{LobbyListAgent, PlayerQueueAgent}
 
   def start_link(opts \\ []) do
     options = Keyword.merge([name: __MODULE__], opts)
@@ -10,8 +10,8 @@ defmodule GooberBot.Queue.QueueSupervisor do
 
   def init(_opts) do
     children = [
-      {PlayerQueueServer, []},
-      {LobbyQueueServer, []}
+      {LobbyListAgent, []},
+      {PlayerQueueAgent, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

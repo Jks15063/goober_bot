@@ -1,4 +1,4 @@
-defmodule GooberBot.Queue.LobbyQueueServer do
+defmodule GooberBot.Agent.PlayerQueueAgent do
   use Agent
 
   def start_link(_) do

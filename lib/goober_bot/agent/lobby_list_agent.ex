@@ -1,13 +1,13 @@
-defmodule GooberBot.Queue.PlayerQueueServer do
+defmodule GooberBot.Agent.LobbyListAgent do
   use Agent
 
   def start_link(_) do
     Agent.start_link(fn -> :queue.new() end, name: __MODULE__)
   end
 
-  def add_player(player_id) do
+  def add_lobby(lobby_url) do
     Agent.update(__MODULE__, fn queue ->
-      :queue.in(player_id, queue)
+      :queue.in(lobby_url, queue)
     end)
   end
 

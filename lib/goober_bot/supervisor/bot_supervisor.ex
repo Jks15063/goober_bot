@@ -1,4 +1,4 @@
-defmodule GooberBot.Bot.BotSupervisor do
+defmodule GooberBot.Supervisor.BotSupervisor do
   use Supervisor
 
   alias GooberBot.Bot.MatchmakingBot
