@@ -1,6 +1,6 @@
-defmodule GooberBot.Game do
+defmodule GooberBot.Region do
   @moduledoc """
-  Game schema and changeset
+  Region schema and changeset
   """
 
   use Ecto.Schema
@@ -9,21 +9,17 @@ defmodule GooberBot.Game do
   @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
-    genre
     name
   )a
 
   @allowed_fields ~w()a ++ @required_fields
 
-  schema "games" do
+  schema "regions" do
     field(:name, :string)
-    field(:genre, :string)
-
-    timestamps(type: :utc_datetime_usec)
   end
 
-  def changeset(game, params) do
-    game
+  def changeset(region, params) do
+    region
     |> cast(params, @allowed_fields)
     |> validate_required(@required_fields)
   end

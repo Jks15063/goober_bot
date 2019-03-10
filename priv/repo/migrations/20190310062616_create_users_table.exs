@@ -1,20 +1,18 @@
-defmodule GooberBot.Repo.Migrations.CreateUserTable do
+defmodule GooberBot.Repo.Migrations.CreateUsersTable do
   use Ecto.Migration
 
   def change do
     create table(:users, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :avatar, :string
       add :bot, :boolean, default: false
+      add :discord_id, :bigint
       add :discriminator, :string
       add :email, :string
-      add :mfa_enabled, :boolean, default: false
-      add :user_id, :bigint
       add :username, :string
-      add :verified, :boolean, default: false
+      add :region_id, references(:regions, type: :uuid)
       timestamps(type: :timestamptz)
     end
 
-    create(unique_index(:users, [:user_id]))
+    create(unique_index(:users, [:discord_id]))
   end
 end

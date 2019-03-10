@@ -6,9 +6,9 @@ defmodule GooberBot.EscrowBot do
   use Nostrum.Consumer
 
   alias Nostrum.Api
-  alias GooberBot.{PlayerQueueServer, Set, User}
+  alias GooberBot.{PlayerQueueServer, Event, User}
   alias GooberBot.User.UserInterface
-  alias GooberBot.Set.SetInterface
+  alias GooberBot.Event.EventInterface
 
   def start_link do
     Consumer.start_link(__MODULE__)
@@ -39,24 +39,24 @@ defmodule GooberBot.EscrowBot do
     challenged_user = hd(msg.mentions)
     [_full_match, score_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
 
-    with {:p1, player1} <- {:p1, UserInterface.get([{:user_id, author.id}])},
-         {:p2, player2} <- {:p2, UserInterface.get([{:user_id, challenged_user.id}])},
-         {:p1_set, nil} <-
-           {:p1_set, SetInterface.get([{:player_id, player1.id}, {:status, :active}])},
-         {:p2_set, nil} <-
-           {:p2_set, SetInterface.get([{:player_id, player2.id}, {:status, :active}])} do
-      new_set = %{
+    with {:p1, player1} <- {:p1, UserInterface.get([{:discord_id, author.id}])},
+         {:p2, player2} <- {:p2, UserInterface.get([{:discord_id, challenged_user.id}])},
+         {:p1_event, nil} <-
+           {:p1_event, EventInterface.get([{:player_id, player1.id}, {:status, :active}])},
+         {:p2_event, nil} <-
+           {:p2_event, EventInterface.get([{:player_id, player2.id}, {:status, :active}])} do
+      new_event = %{
         player1_id: player1.id,
         player2_id: player2.id,
         status: :open,
         score_to_win: score_to_win
       }
 
-      {:ok, _set} = SetInterface.create(new_set)
+      {:ok, _event} = EventInterface.create(new_event)
 
       Api.create_message(
         msg.channel_id,
-        "<@#{player2.user_id}> has been challenged by <@#{player1.user_id}> to a first to #{
+        "<@#{player2.discord_id}> has been challenged by <@#{player1.discord_id}> to a first to #{
           score_to_win
         }."
       )
@@ -73,13 +73,13 @@ defmodule GooberBot.EscrowBot do
           "<@#{challenged_user.username}> is not registered."
         )
 
-      {:p1_set, %Set{}} ->
+      {:p1_event, %Event{}} ->
         Api.create_message(
           msg.channel_id,
           "<@#{author.id}> you can only issue one challenge at a time."
         )
 
-      {:p2_set, %Set{}} ->
+      {:p2_event, %Event{}} ->
         Api.create_message(
           msg.channel_id,
           "<@#{challenged_user.username}> can only be part of one challenge at a time."
@@ -91,26 +91,27 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb ping"} = msg) do
-    user = UserInterface.get([{:user_id, msg.author.id}])
-    # set = SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
+    user = UserInterface.get([{:discord_id, msg.author.id}])
+
+    # event = EventInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
 
     IO.inspect(msg)
 
     Api.create_message(
       msg.channel_id,
-      "<@#{user.user_id}> pong "
+      "<@#{user.discord_id}> pong "
     )
   end
 
   defp handle_cmd(%{content: "$eb accept"} = msg) do
-    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
-         %Set{} = set <-
-           SetInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
-      {:ok, _set} = SetInterface.update(set, %{status: :accepted})
+    with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
+         %Event{} = event <-
+           EventInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
+      {:ok, _event} = EventInterface.update(event, %{status: :accepted})
 
       Api.create_message(
         msg.channel_id,
-        "User <@#{msg.author.id}> has accepted a challenge from <@#{set.player1.user_id}>"
+        "User <@#{msg.author.id}> has accepted a challenge from <@#{event.player1.discord_id}>"
       )
     else
       nil ->
@@ -122,14 +123,14 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb decline"} = msg) do
-    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
-         %Set{} = set <-
-           SetInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
-      {:ok, _set} = SetInterface.update(set, %{status: :accepted})
+    with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
+         %Event{} = event <-
+           EventInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
+      {:ok, _event} = EventInterface.update(event, %{status: :accepted})
 
       Api.create_message(
         msg.channel_id,
-        "User <@#{msg.author.id}> has declined the challenge from <@#{set.player1.user_id}>"
+        "User <@#{msg.author.id}> has declined the challenge from <@#{event.player1.discord_id}>"
       )
     else
       nil ->
@@ -141,14 +142,14 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb cancel"} = msg) do
-    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
-         %Set{} = set <-
-           SetInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}]) do
-      {:ok, _set} = SetInterface.update(set, %{status: :canceled})
+    with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
+         %Event{} = event <-
+           EventInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}]) do
+      {:ok, _event} = EventInterface.update(event, %{status: :canceled})
 
       Api.create_message(
         msg.channel_id,
-        "User <@#{msg.author.id}> has canceled their challenge to <@#{set.player2.user_id}>"
+        "User <@#{msg.author.id}> has canceled their challenge to <@#{event.player2.discord_id}>"
       )
     else
       nil ->
@@ -160,14 +161,14 @@ defmodule GooberBot.EscrowBot do
   end
 
   defp handle_cmd(%{content: "$eb report" <> score_txt} = msg) do
-    with %User{} = user <- UserInterface.get([{:user_id, msg.author.id}]),
+    with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
          # TODO: change :accepted to :started once that logic is in place
-         %Set{} = set <-
-           SetInterface.get([{:player_id, user.id}, {:status, :accepted}, {:preload, :default}]),
+         %Event{} = event <-
+           EventInterface.get([{:player_id, user.id}, {:status, :accepted}, {:preload, :default}]),
          [_full_match, player1_score, player2_score] <-
            Regex.run(~r/([0-9]+)-([0-9]+)/, score_txt) do
-      {:ok, _set} =
-        SetInterface.update(set, %{
+      {:ok, _event} =
+        EventInterface.update(event, %{
           player1_score: player1_score,
           player2_score: player2_score,
           status: :completed
@@ -175,7 +176,9 @@ defmodule GooberBot.EscrowBot do
 
       Api.create_message(
         msg.channel_id,
-        "<@#{set.player1.user_id}>: #{player1_score}, <@#{set.player2.user_id}>: #{player2_score}"
+        "<@#{event.player1.discord_id}>: #{player1_score}, <@#{event.player2.discord_id}>: #{
+          player2_score
+        }"
       )
     else
       nil ->
@@ -189,8 +192,10 @@ defmodule GooberBot.EscrowBot do
   defp handle_cmd(%{content: "$eb register"} = msg) do
     author =
       msg.author
-      |> Map.put(:user_id, msg.author.id)
+      |> Map.put(:discord_id, msg.author.id)
       |> Map.delete(:id)
+
+    IO.inspect(author)
 
     case UserInterface.create(Map.from_struct(author)) do
       {:ok, _user} ->
@@ -226,7 +231,7 @@ defmodule GooberBot.EscrowBot do
     :ignore
   end
 
-  defp handle_registration_errors([user_id: {"has already been taken", _}], channel_id) do
+  defp handle_registration_errors([discord_id: {"has already been taken", _}], channel_id) do
     Api.create_message(
       channel_id,
       "already registered"

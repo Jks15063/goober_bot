@@ -6,43 +6,38 @@ defmodule GooberBot.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.{Match, Set}
+  alias GooberBot.{Event, EventParticipant, Region}
 
   @primary_key {:id, :binary_id, autogenerate: true}
 
   @required_fields ~w(
-    user_id
-    username
+    discord_id
     discriminator
+    username
   )a
 
-  @optional_fields ~w(
-    avatar
+  @allowed_fields ~w(
     bot
     email
-    mfa_enabled
-    verified
-  )a
+  )a ++ @required_fields
 
   schema "users" do
-    field(:avatar, :string)
     field(:bot, :boolean, default: false)
+    field(:discord_id, :integer)
     field(:discriminator, :string)
     field(:email, :string)
-    field(:mfa_enabled, :boolean, default: false)
-    field(:user_id, :integer)
     field(:username, :string)
-    field(:verified, :boolean, default: false)
 
-    has_many(:matches, Match, foreign_key: :player1_id)
-    has_many(:sets, Set, foreign_key: :player1_id)
+    belongs_to(:region, Region)
+    many_to_many(:events, Event, join_through: EventParticipant, on_replace: :delete)
+
     timestamps(type: :utc_datetime_usec)
   end
 
   def changeset(user, params) do
     user
-    |> cast(params, @optional_fields ++ @required_fields)
+    |> cast(params, @allowed_fields)
     |> validate_required(@required_fields)
-    |> unique_constraint(:user_id)
+    |> unique_constraint(:discord_id)
   end
 end

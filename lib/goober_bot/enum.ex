@@ -4,5 +4,7 @@ defmodule GooberBot.Enum do
   """
   import EctoEnum
 
-  defenum(SetStatus, :set_status, [:open, :accepted, :started, :completed, :canceled])
+  defenum(EventStatus, :set_status, [:open, :accepted, :started, :completed, :canceled])
+  defenum(SkillLevel, :skill_level, [:beginner, :intermidiate, :advanced])
+  defenum(EventOutcome, :event_outcome, [:win, :lose, :draw])
 end
