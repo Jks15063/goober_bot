@@ -11,7 +11,7 @@ use Mix.Config
 # before starting your production server.
 config :goober_bot, GooberBotWeb.Endpoint,
   load_from_system_env: true,
-  http: [:inet6, port: {:system, "PORT"}],
+  http: [port: {:system, "PORT"}],
   url: [host: "${APP_NAME}.gigalixirapp.com", port: 443],
   cache_static_manifest: "priv/static/cache_manifest.json",
   server: true,
@@ -22,7 +22,7 @@ config :goober_bot, GooberBot.Repo,
   url: "${DATABASE_URL}",
   database: "",
   ssl: true,
-  pool_size: 1
+  pool_size: 2
 
 # Do not print debug messages in production
 config :logger, level: :info
