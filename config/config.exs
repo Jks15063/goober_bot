@@ -26,7 +26,7 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :nostrum,
-  token: System.get_env("DISCORD_BOT_TOKEN"),
+  token: "${DISCORD_BOT_TOKEN}",
   num_shards: :auto
 
 # Import environment specific config. This must remain at the bottom
