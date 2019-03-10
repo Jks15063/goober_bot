@@ -6,7 +6,7 @@ defmodule GooberBot.Event do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias GooberBot.User
+  alias GooberBot.{EventParticipant, Game, User}
   alias GooberBot.Enum.EventStatus
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -21,7 +21,7 @@ defmodule GooberBot.Event do
     field(:status, EventStatus)
 
     belongs_to(:game, Game)
-    many_to_many(:events, Event, join_through: EventParticipant, on_replace: :delete)
+    many_to_many(:users, User, join_through: EventParticipant, on_replace: :delete)
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -30,5 +30,7 @@ defmodule GooberBot.Event do
     event
     |> cast(params, @allowed_fields)
     |> validate_required(@required_fields)
+
+    # |> cast_assoc(:event_participants)
   end
 end

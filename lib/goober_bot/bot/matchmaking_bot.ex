@@ -1,4 +1,4 @@
-defmodule GooberBot.EscrowBot do
+defmodule GooberBot.Bot.MatchmakingBot do
   @moduledoc """
   Bot designed to facilitate money matches on discord
   """
@@ -6,9 +6,10 @@ defmodule GooberBot.EscrowBot do
   use Nostrum.Consumer
 
   alias Nostrum.Api
-  alias GooberBot.{PlayerQueueServer, Event, User}
+  alias GooberBot.{Event, User}
   alias GooberBot.User.UserInterface
   alias GooberBot.Event.EventInterface
+  alias GooberBot.Queue.PlayerQueueServer
 
   def start_link do
     Consumer.start_link(__MODULE__)
@@ -34,63 +35,7 @@ defmodule GooberBot.EscrowBot do
     Api.create_message(msg.channel_id, "show q: todo")
   end
 
-  defp handle_cmd(%{content: "$eb challenge" <> challenge_txt} = msg) do
-    author = msg.author
-    challenged_user = hd(msg.mentions)
-    [_full_match, score_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
-
-    with {:p1, player1} <- {:p1, UserInterface.get([{:discord_id, author.id}])},
-         {:p2, player2} <- {:p2, UserInterface.get([{:discord_id, challenged_user.id}])},
-         {:p1_event, nil} <-
-           {:p1_event, EventInterface.get([{:player_id, player1.id}, {:status, :active}])},
-         {:p2_event, nil} <-
-           {:p2_event, EventInterface.get([{:player_id, player2.id}, {:status, :active}])} do
-      new_event = %{
-        player1_id: player1.id,
-        player2_id: player2.id,
-        status: :open,
-        score_to_win: score_to_win
-      }
-
-      {:ok, _event} = EventInterface.create(new_event)
-
-      Api.create_message(
-        msg.channel_id,
-        "<@#{player2.discord_id}> has been challenged by <@#{player1.discord_id}> to a first to #{
-          score_to_win
-        }."
-      )
-    else
-      {:p1, _error} ->
-        Api.create_message(
-          msg.channel_id,
-          "<@#{author.id}> please register: `$eb register`"
-        )
-
-      {:p2, _error} ->
-        Api.create_message(
-          msg.channel_id,
-          "<@#{challenged_user.username}> is not registered."
-        )
-
-      {:p1_event, %Event{}} ->
-        Api.create_message(
-          msg.channel_id,
-          "<@#{author.id}> you can only issue one challenge at a time."
-        )
-
-      {:p2_event, %Event{}} ->
-        Api.create_message(
-          msg.channel_id,
-          "<@#{challenged_user.username}> can only be part of one challenge at a time."
-        )
-
-      {:error, changeset} ->
-        {:error, changeset}
-    end
-  end
-
-  defp handle_cmd(%{content: "$eb ping"} = msg) do
+  defp handle_cmd(%{content: "!ping"} = msg) do
     user = UserInterface.get([{:discord_id, msg.author.id}])
 
     # event = EventInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}])
@@ -103,7 +48,7 @@ defmodule GooberBot.EscrowBot do
     )
   end
 
-  defp handle_cmd(%{content: "$eb accept"} = msg) do
+  defp handle_cmd(%{content: "!accept"} = msg) do
     with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
          %Event{} = event <-
            EventInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
@@ -122,7 +67,7 @@ defmodule GooberBot.EscrowBot do
     end
   end
 
-  defp handle_cmd(%{content: "$eb decline"} = msg) do
+  defp handle_cmd(%{content: "!decline"} = msg) do
     with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
          %Event{} = event <-
            EventInterface.get([{:player2_id, user.id}, {:status, :open}, {:preload, :default}]) do
@@ -141,7 +86,7 @@ defmodule GooberBot.EscrowBot do
     end
   end
 
-  defp handle_cmd(%{content: "$eb cancel"} = msg) do
+  defp handle_cmd(%{content: "!cancel"} = msg) do
     with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
          %Event{} = event <-
            EventInterface.get([{:player1_id, user.id}, {:status, :active}, {:preload, :default}]) do
@@ -160,7 +105,7 @@ defmodule GooberBot.EscrowBot do
     end
   end
 
-  defp handle_cmd(%{content: "$eb report" <> score_txt} = msg) do
+  defp handle_cmd(%{content: "!report" <> score_txt} = msg) do
     with %User{} = user <- UserInterface.get([{:discord_id, msg.author.id}]),
          # TODO: change :accepted to :started once that logic is in place
          %Event{} = event <-
@@ -189,19 +134,17 @@ defmodule GooberBot.EscrowBot do
     end
   end
 
-  defp handle_cmd(%{content: "$eb register"} = msg) do
+  defp handle_cmd(%{content: "!register"} = msg) do
     author =
       msg.author
       |> Map.put(:discord_id, msg.author.id)
       |> Map.delete(:id)
 
-    IO.inspect(author)
-
     case UserInterface.create(Map.from_struct(author)) do
       {:ok, _user} ->
         Api.create_message(
           msg.channel_id,
-          "<@#{msg.author.id}> registered, type `$eb help` to see the list of commands."
+          "<@#{msg.author.id}> registered, type `!help` to see the list of commands."
         )
 
       {:error, changeset} ->
@@ -209,22 +152,75 @@ defmodule GooberBot.EscrowBot do
     end
   end
 
-  defp handle_cmd(%{content: "$eb help"} = msg) do
+  defp handle_cmd(%{content: "!help"} = msg) do
     Api.create_message(
       msg.channel_id,
       """
-      Issue challenge: `$eb challenge @<username> $<dollar_amount>`.
-      Example: `$eb challenge @torkable $10.00`
+      Issue challenge: `!challenge @<username> $<dollar_amount>`.
+      Example: `!challenge @torkable $10.00`
 
       Accept challenge: `$accept`
 
-      Decline challenge: `$eb decline`
+      Decline challenge: `!decline`
 
-      Cancel challenge: `$eb cancel`
+      Cancel challenge: `!cancel`
 
-      Finish match: `$eb report winner @<username>`
+      Finish match: `!report winner @<username>`
       """
     )
+  end
+
+  defp handle_cmd(%{content: "!challenge" <> challenge_txt} = msg) do
+    author = msg.author
+    challenged_user = hd(msg.mentions)
+    [_full_match, score_to_win] = Regex.run(~r/ft ([0-9]+)/, challenge_txt)
+
+    with {:p1, player1} <- {:p1, UserInterface.get([{:discord_id, author.id}])},
+         {:p2, player2} <- {:p2, UserInterface.get([{:discord_id, challenged_user.id}])},
+         {:p1_event, nil} <-
+           {:p1_event, EventInterface.get([{:player_id, player1.id}, {:status, :active}])},
+         {:p2_event, nil} <-
+           {:p2_event, EventInterface.get([{:player_id, player2.id}, {:status, :active}])} do
+      new_event = %{
+        status: :open
+      }
+
+      {:ok, _event} = EventInterface.create(new_event)
+
+      Api.create_message(
+        msg.channel_id,
+        "<@#{player2.discord_id}> has been challenged by <@#{player1.discord_id}> to a first to #{
+          score_to_win
+        }."
+      )
+    else
+      {:p1, _error} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{author.id}> please register: `!register`"
+        )
+
+      {:p2, _error} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{challenged_user.username}> is not registered."
+        )
+
+      {:p1_event, %Event{}} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{author.id}> you can only issue one challenge at a time."
+        )
+
+      {:p2_event, %Event{}} ->
+        Api.create_message(
+          msg.channel_id,
+          "<@#{challenged_user.username}> can only be part of one challenge at a time."
+        )
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   defp handle_cmd(_) do

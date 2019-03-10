@@ -1,8 +1,7 @@
-defmodule GooberBot.PlayerQueueServer do
+defmodule GooberBot.Queue.PlayerQueueServer do
   use Agent
 
   def start_link(_) do
-    # Agent.start_link(fn -> :ets.new(:player_q, []) end, name: __MODULE__)
     Agent.start_link(fn -> :queue.new() end, name: __MODULE__)
   end
 
